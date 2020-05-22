@@ -15,6 +15,7 @@ dependencies:
   lint: ^1.2.0
   rxdart: ^0.24.1
   provider: ^4.1.2
+  shared_preferences: ^0.5.7+3
 
   cupertino_icons: ^0.1.3
 
