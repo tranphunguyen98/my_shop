@@ -1,4 +1,8 @@
-class SPrefCache {
-  static const kKeyToken = 'key_token';
-  static const kKeyUser = 'key_user';
-}
+const kKeyToken = 'key_token';
+const kKeyUser = 'key_user';
+
+//Image Constants
+const kImageBackgroundLogin = 'assets/images/background.png';
+const kImageLight1 = 'assets/images/light_1.png';
+const kImageLight2 = 'assets/images/light_2.png';
+const kImageClock = 'assets/images/clock.png';
