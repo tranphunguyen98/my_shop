@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:my_shop/base/base_widget.dart';
+import 'package:my_shop/data/remote/user_service.dart';
+import 'package:my_shop/data/repo/user_repo.dart';
+import 'package:my_shop/event/signup_event.dart';
+import 'package:my_shop/module/signin/signup_bloc.dart';
 import 'package:my_shop/shared/animations/fade_animation.dart';
 import 'package:my_shop/shared/constant.dart';
 import 'package:my_shop/shared/style/styles.dart';
 import 'package:my_shop/shared/widget/divider_text_field.dart';
 import 'package:my_shop/shared/widget/normal_button.dart';
+import 'package:provider/provider.dart';
 
 class SignUpPage extends StatefulWidget {
   @override
@@ -13,8 +19,21 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
+    return PageContainer(
+      di: [
+        Provider<UserService>(
+          create: (context) => UserService(),
+        ),
+        ProxyProvider<UserService, UserRepo>(
+          update: (context, userService, previous) =>
+              UserRepo(userService: userService),
+        ),
+        ProxyProvider<UserRepo, SignUpBloc>(
+          update: (context, userRepo, previous) =>
+              SignUpBloc(userRepo: userRepo),
+        )
+      ],
+      child: SingleChildScrollView(
         child: Column(
           children: <Widget>[
             _buildTopBackground(),
@@ -116,43 +135,52 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
-      child: Column(
-        children: <Widget>[
-          FadeAnimation(
-            delay: 1.8,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: kBoxDecorationNormal,
-              child: Column(
-                children: <Widget>[
-                  _buildEmailTextField(),
-                  const DividerTextField(),
-                  _buildPasswordTextField(),
-                  const DividerTextField(),
-                  _buildConfirmPasswordTextField(),
-                ],
+    return Consumer<SignUpBloc>(
+      builder: (context, bloc, child) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
+        child: Column(
+          children: <Widget>[
+            FadeAnimation(
+              delay: 1.8,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: kBoxDecorationNormal,
+                child: Column(
+                  children: <Widget>[
+                    _buildEmailTextField(),
+                    const DividerTextField(),
+                    _buildPasswordTextField(),
+                    const DividerTextField(),
+                    _buildConfirmPasswordTextField(),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(
-            height: 30,
-          ),
-          NormalButton(
-            title: 'Sign Up',
-            onPressed: () {},
-            isEnable: false,
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          _buildForgotPassword(),
-          const SizedBox(
-            height: 30,
-          ),
-          _buildRowLogin()
-        ],
+            const SizedBox(
+              height: 30,
+            ),
+            NormalButton(
+              title: 'Sign Up',
+              onPressed: () {
+                bloc.event.add(
+                  SignUpEvent(
+                    email: _emailTextController.text,
+                    pass: _passwordTextController.text,
+                  ),
+                );
+              },
+              isEnable: true,
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            _buildForgotPassword(),
+            const SizedBox(
+              height: 30,
+            ),
+            _buildRowLogin()
+          ],
+        ),
       ),
     );
   }
@@ -170,36 +198,37 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
       ),
     );
   }
-}
 
-Widget _buildPasswordTextField() {
-  return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: TextField(
-      obscureText: true,
-      onChanged: (value) {},
-      decoration: InputDecoration(
-        border: InputBorder.none,
-        hintText: "Password",
-        hintStyle: kTextHint,
+  Widget _buildPasswordTextField() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextField(
+        controller: _passwordTextController,
+        obscureText: true,
+        onChanged: (value) {},
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          hintText: "Password",
+          hintStyle: kTextHint,
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-Widget _buildConfirmPasswordTextField() {
-  return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: TextField(
-      obscureText: true,
-      onChanged: (value) {},
-      decoration: InputDecoration(
-        border: InputBorder.none,
-        hintText: "Confirm Password",
-        hintStyle: kTextHint,
+  Widget _buildConfirmPasswordTextField() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: TextField(
+        obscureText: true,
+        onChanged: (value) {},
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          hintText: "Confirm Password",
+          hintStyle: kTextHint,
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 SizedBox _buildForgotPassword() {
