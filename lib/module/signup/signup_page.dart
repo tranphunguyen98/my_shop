@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:my_shop/base/base_widget.dart';
-import 'package:my_shop/data/remote/user_service.dart';
-import 'package:my_shop/data/repo/user_repo.dart';
-import 'package:my_shop/event/signup_event.dart';
-import 'package:my_shop/module/signin/signup_bloc.dart';
-import 'package:my_shop/shared/animations/fade_animation.dart';
-import 'package:my_shop/shared/constant.dart';
-import 'package:my_shop/shared/style/styles.dart';
-import 'package:my_shop/shared/widget/divider_text_field.dart';
-import 'package:my_shop/shared/widget/normal_button.dart';
 import 'package:provider/provider.dart';
+
+import '../../base/base_widget.dart';
+import '../../data/remote/user_service.dart';
+import '../../data/repo/user_repo.dart';
+import '../../event/signup_event.dart';
+import '../../shared/animations/fade_animation.dart';
+import '../../shared/constant.dart';
+import '../../shared/style/styles.dart';
+import '../../shared/widget/divider_text_field.dart';
+import '../../shared/widget/normal_button.dart';
+import 'signup_bloc.dart';
 
 class SignUpPage extends StatefulWidget {
   @override
@@ -117,12 +118,14 @@ class SignUpFormWidget extends StatefulWidget {
 class _SignUpFormWidgetState extends State<SignUpFormWidget> {
   TextEditingController _emailTextController;
   TextEditingController _passwordTextController;
-  // final _confirmPasswordTextController = TextEditingController();
+  TextEditingController _confirmPasswordTextController =
+      TextEditingController();
 
   @override
   void initState() {
     _emailTextController = TextEditingController();
     _passwordTextController = TextEditingController();
+    _confirmPasswordTextController = TextEditingController();
     super.initState();
   }
 
@@ -130,6 +133,7 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
   void dispose() {
     _emailTextController.dispose();
     _passwordTextController.dispose();
+    _confirmPasswordTextController.dispose();
     super.dispose();
   }
 
@@ -147,11 +151,11 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
                 decoration: kBoxDecorationNormal,
                 child: Column(
                   children: <Widget>[
-                    _buildEmailTextField(),
+                    _buildEmailTextField(bloc),
                     const DividerTextField(),
-                    _buildPasswordTextField(),
+                    _buildPasswordTextField(bloc),
                     const DividerTextField(),
-                    _buildConfirmPasswordTextField(),
+                    _buildConfirmPasswordTextField(bloc),
                   ],
                 ),
               ),
@@ -159,18 +163,23 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
             const SizedBox(
               height: 30,
             ),
-            NormalButton(
-              title: 'Sign Up',
-              onPressed: () {
-                bloc.event.add(
-                  SignUpEvent(
-                    email: _emailTextController.text,
-                    pass: _passwordTextController.text,
-                  ),
-                );
-              },
-              isEnable: true,
-            ),
+            StreamBuilder<bool>(
+                initialData: false,
+                stream: bloc.registerValid,
+                builder: (context, snaphot) {
+                  return NormalButton(
+                    title: 'Sign Up',
+                    onPressed: () {
+                      bloc.event.add(
+                        SignUpEvent(
+                          email: _emailTextController.text,
+                          pass: _passwordTextController.text,
+                        ),
+                      );
+                    },
+                    isEnable: snaphot.data ?? false,
+                  );
+                }),
             const SizedBox(
               height: 20,
             ),
@@ -185,48 +194,73 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
     );
   }
 
-  Widget _buildEmailTextField() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: TextField(
-        controller: _emailTextController,
-        onChanged: (value) {},
-        decoration: InputDecoration(
-            border: InputBorder.none,
-            hintText: "Email or Phone number",
-            hintStyle: kTextHint),
-      ),
+  Widget _buildEmailTextField(SignUpBloc bloc) {
+    return StreamBuilder<String>(
+      stream: bloc.email,
+      builder: (context, snapshot) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextField(
+            controller: _emailTextController,
+            onChanged: (value) {
+              bloc.onEmailChanged(value);
+            },
+            decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: "Email or Phone number",
+                errorText: snapshot.error?.toString(),
+                hintStyle: kTextHint),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildPasswordTextField() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: TextField(
-        controller: _passwordTextController,
-        obscureText: true,
-        onChanged: (value) {},
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          hintText: "Password",
-          hintStyle: kTextHint,
-        ),
-      ),
+  Widget _buildPasswordTextField(SignUpBloc bloc) {
+    return StreamBuilder<String>(
+      stream: bloc.password,
+      builder: (context, snapshot) {
+        debugPrint(snapshot.error.toString());
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextField(
+            controller: _passwordTextController,
+            obscureText: true,
+            onChanged: (value) {
+              bloc.onPasswordChanged(value);
+            },
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              hintText: "Password",
+              errorText: snapshot.error?.toString(),
+              hintStyle: kTextHint,
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildConfirmPasswordTextField() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: TextField(
-        obscureText: true,
-        onChanged: (value) {},
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          hintText: "Confirm Password",
-          hintStyle: kTextHint,
-        ),
-      ),
+  Widget _buildConfirmPasswordTextField(SignUpBloc bloc) {
+    return StreamBuilder<String>(
+      stream: bloc.comfirmPassword,
+      builder: (context, snapshot) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: TextField(
+            obscureText: true,
+            onChanged: (value) {
+              bloc.onConfirmPasswordChanged(value);
+            },
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              errorText: snapshot.error?.toString(),
+              hintText: "Confirm Password",
+              hintStyle: kTextHint,
+            ),
+          ),
+        );
+      },
     );
   }
 }
