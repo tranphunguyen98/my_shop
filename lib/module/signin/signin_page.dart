@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:my_shop/event/singin_event.dart';
+import 'package:my_shop/module/signin/signin_bloc.dart';
 import 'package:provider/provider.dart';
 
 import '../../base/base_widget.dart';
 import '../../data/remote/user_service.dart';
 import '../../data/repo/user_repo.dart';
-import '../../event/signup_event.dart';
 import '../../shared/animations/fade_animation.dart';
 import '../../shared/constant.dart';
 import '../../shared/style/styles.dart';
 import '../../shared/widget/divider_text_field.dart';
 import '../../shared/widget/normal_button.dart';
-import 'signup_bloc.dart';
 
-class SignUpPage extends StatefulWidget {
+class SignInPage extends StatefulWidget {
   @override
-  _SignUpPageState createState() => _SignUpPageState();
+  _SignInPageState createState() => _SignInPageState();
 }
 
-class _SignUpPageState extends State<SignUpPage> {
+class _SignInPageState extends State<SignInPage> {
   @override
   Widget build(BuildContext context) {
     return PageContainer(
@@ -29,16 +29,16 @@ class _SignUpPageState extends State<SignUpPage> {
           update: (context, userService, previous) =>
               UserRepo(userService: userService),
         ),
-        ProxyProvider<UserRepo, SignUpBloc>(
+        ProxyProvider<UserRepo, SignInBloc>(
           update: (context, userRepo, previous) =>
-              SignUpBloc(userRepo: userRepo),
+              SignInBloc(userRepo: userRepo),
         )
       ],
       child: SingleChildScrollView(
         child: Column(
           children: <Widget>[
             _buildTopBackground(),
-            const SignUpFormWidget(),
+            const SignInFormWidget(),
           ],
         ),
       ),
@@ -94,7 +94,7 @@ class _SignUpPageState extends State<SignUpPage> {
               padding: EdgeInsets.only(top: 50.0),
               child: Center(
                 child: Text(
-                  'Sign Up',
+                  'Sign In',
                   style: kTextStyleTitleXLarge,
                 ),
               ),
@@ -106,26 +106,23 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 }
 
-class SignUpFormWidget extends StatefulWidget {
-  const SignUpFormWidget({
+class SignInFormWidget extends StatefulWidget {
+  const SignInFormWidget({
     Key key,
   }) : super(key: key);
 
   @override
-  _SignUpFormWidgetState createState() => _SignUpFormWidgetState();
+  _SignInFormWidgetState createState() => _SignInFormWidgetState();
 }
 
-class _SignUpFormWidgetState extends State<SignUpFormWidget> {
+class _SignInFormWidgetState extends State<SignInFormWidget> {
   TextEditingController _emailTextController;
   TextEditingController _passwordTextController;
-  TextEditingController _confirmPasswordTextController =
-      TextEditingController();
 
   @override
   void initState() {
     _emailTextController = TextEditingController();
     _passwordTextController = TextEditingController();
-    _confirmPasswordTextController = TextEditingController();
     super.initState();
   }
 
@@ -133,13 +130,12 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
   void dispose() {
     _emailTextController.dispose();
     _passwordTextController.dispose();
-    _confirmPasswordTextController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<SignUpBloc>(
+    return Consumer<SignInBloc>(
       builder: (context, bloc, child) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
         child: Column(
@@ -154,8 +150,6 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
                     _buildEmailTextField(bloc),
                     const DividerTextField(),
                     _buildPasswordTextField(bloc),
-                    const DividerTextField(),
-                    _buildConfirmPasswordTextField(bloc),
                   ],
                 ),
               ),
@@ -165,13 +159,13 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
             ),
             StreamBuilder<bool>(
                 initialData: false,
-                stream: bloc.registerValid,
+                stream: bloc.signInValid,
                 builder: (context, snaphot) {
                   return NormalButton(
-                    title: 'Sign Up',
+                    title: 'Sign In',
                     onPressed: () {
                       bloc.event.add(
-                        SignUpEvent(
+                        SignInEvent(
                           email: _emailTextController.text,
                           pass: _passwordTextController.text,
                         ),
@@ -185,7 +179,7 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
             ),
             _buildForgotPassword(),
             const SizedBox(
-              height: 10,
+              height: 30,
             ),
             _buildRowLogin(context)
           ],
@@ -194,7 +188,7 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
     );
   }
 
-  Widget _buildEmailTextField(SignUpBloc bloc) {
+  Widget _buildEmailTextField(SignInBloc bloc) {
     return StreamBuilder<String>(
       stream: bloc.email,
       builder: (context, snapshot) {
@@ -216,7 +210,7 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
     );
   }
 
-  Widget _buildPasswordTextField(SignUpBloc bloc) {
+  Widget _buildPasswordTextField(SignInBloc bloc) {
     return StreamBuilder<String>(
       stream: bloc.password,
       builder: (context, snapshot) {
@@ -233,29 +227,6 @@ class _SignUpFormWidgetState extends State<SignUpFormWidget> {
               border: InputBorder.none,
               hintText: "Password",
               errorText: snapshot.error?.toString(),
-              hintStyle: kTextHint,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildConfirmPasswordTextField(SignUpBloc bloc) {
-    return StreamBuilder<String>(
-      stream: bloc.comfirmPassword,
-      builder: (context, snapshot) {
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            obscureText: true,
-            onChanged: (value) {
-              bloc.onConfirmPasswordChanged(value);
-            },
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              errorText: snapshot.error?.toString(),
-              hintText: "Confirm Password",
               hintStyle: kTextHint,
             ),
           ),
@@ -302,10 +273,10 @@ Widget _buildRowLogin(BuildContext context) {
           },
           child: FlatButton(
             onPressed: () {
-              Navigator.pushNamed(context, kSignInRoute);
+              Navigator.pushNamed(context, kSignUpRoute);
             },
             child: const Text(
-              "Login",
+              "Sign Up",
               style: TextStyle(
                 color: primaryColor,
               ),

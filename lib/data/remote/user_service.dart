@@ -16,4 +16,13 @@ class UserService {
       },
     );
   }
+
+  Future<Response> signIn(String email, String password) {
+    return AuthClient.instance.dio
+        .post('accounts:signInWithPassword?key=$_apiKey', data: {
+      'email': email,
+      'password': password,
+      'returnSecureToken': true,
+    });
+  }
 }
